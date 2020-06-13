@@ -1,9 +1,10 @@
 Event Calendar
 
- * Use fullcalendar.css for basic styling.
- * For event drag & drop, requires jQuery UI draggable.
- * For event resizing, requires jQuery UI resizable.
- * For data and time setting, requires moment.js. 
+ * Create an Event calendar (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/).
+ * For event drag & drop, requires jQuery draggable.
+ * For event resizing, requires jQuery resizable.
+ * For data and time setting, requires momentslocales.js. 
+ 
  
 
 url: https://veron-star.github.io/eventcalendar/

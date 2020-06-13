@@ -123,9 +123,9 @@ html .fc,
 .fc-widget-header{
     border-bottom: 1px solid #EEE; 
 }	
-.fc-state-highlight { /* <td> today cell */ /* TODO: add .fc-today to <th> */
+/* .fc-state-highlight { /* <td> today cell */ /* TODO: add .fc-today to <th> */
 	/* background: #fcf8e3; */
-}
+/* } */ 
 
 .fc-state-highlight > div > div.fc-day-number{
     background-color: #ff3b30;
@@ -390,9 +390,9 @@ table.fc-border-separate {
 	}
 	
 
-.fc-border-separate tr.fc-last td {
+/* .fc-border-separate tr.fc-last td {
 	
-}
+} */
 .fc-border-separate .fc-week .fc-first{
     border-left: 0;
 }

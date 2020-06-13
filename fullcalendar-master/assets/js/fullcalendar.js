@@ -1,13 +1,7 @@
-
- 
 (function($, undefined) {
-
-
 ;;
 
 var defaults = {
-
-	// display
 	defaultView: 'month',
 	aspectRatio: 1.35,
 	header: {
@@ -20,15 +14,9 @@ var defaults = {
 	weekNumberCalculation: 'iso',
 	weekNumberTitle: 'W',
 	
-	// editing
-	//editable: false,
-	//disableDragging: false,
-	//disableResizing: false,
-	
 	allDayDefault: true,
 	ignoreTimezone: true,
 	
-	// event ajax
 	lazyFetching: true,
 	startParam: 'start',
 	endParam: 'end',
@@ -66,7 +54,7 @@ var defaults = {
 		day: 'day'
 	},
 	
-	// jquery-ui theming
+	// jquery theming
 	theme: false,
 	buttonIcons: {
 		prev: 'circle-triangle-w',
@@ -100,19 +88,13 @@ var rtlDefaults = {
 		next: 'circle-triangle-w'
 	}
 };
-
-
-
 ;;
 
 var fc = $.fullCalendar = { version: "1.6.4" };
 var fcViews = fc.views = {};
 
-
 $.fn.fullCalendar = function(options) {
 
-
-	// method calling
 	if (typeof options == 'string') {
 		var args = Array.prototype.slice.call(arguments, 1);
 		var res;
@@ -136,7 +118,6 @@ $.fn.fullCalendar = function(options) {
 
 	options = options || {};
 	
-	// would like to have this logic in EventManager, but needs to happen before options are recursively extended
 	var eventSources = options.eventSources || [];
 	delete options.eventSources;
 	if (options.events) {
@@ -144,21 +125,18 @@ $.fn.fullCalendar = function(options) {
 		delete options.events;
 	}
 	
-
 	options = $.extend(true, {},
 		defaults,
 		(options.isRTL || options.isRTL===undefined && defaults.isRTL) ? rtlDefaults : {},
 		options
 	);
 	
-	
 	this.each(function(i, _element) {
 		var element = $(_element);
 		var calendar = new Calendar(element, options, eventSources);
-		element.data('fullCalendar', calendar); // TODO: look into memory leak implications
+		element.data('fullCalendar', calendar); 
 		calendar.render();
 	});
-	
 	
 	return this;
 	
@@ -170,15 +148,11 @@ function setDefaults(d) {
 	$.extend(true, defaults, d);
 }
 
-
-
 ;;
-
  
 function Calendar(element, options, eventSources) {
 	var t = this;
-	
-	
+		
 	// exports
 	t.options = options;
 	t.render = render;
@@ -424,13 +398,10 @@ function Calendar(element, options, eventSources) {
 		}
 	}
 	
-	
 	function setSize() { // assumes elementVisible
 
 		if (suggestedViewHeight === undefined) {
-			calcSize(); // for first time
-				// NOTE: we don't want to recalculate on every renderView because
-				// it could result in oscillating heights due to scrollbars.
+			calcSize(); 
 		}
 
 		ignoreWindowResize++;
@@ -444,12 +415,12 @@ function Calendar(element, options, eventSources) {
 	
 	function windowResize() {
 		if (!ignoreWindowResize) {
-			if (currentView.start) { // view has already been rendered
+			if (currentView.start) { 
 				var uid = ++resizeUID;
-				setTimeout(function() { // add a delay
+				setTimeout(function() { 
 					if (uid == resizeUID && !ignoreWindowResize && elementVisible()) {
 						if (elementOuterWidth != (elementOuterWidth = element.outerWidth())) {
-							ignoreWindowResize++; // in case the windowResize callback changes the height
+							ignoreWindowResize++;
 							updateSize();
 							currentView.trigger('windowResize', _element);
 							ignoreWindowResize--;
@@ -457,47 +428,37 @@ function Calendar(element, options, eventSources) {
 					}
 				}, 200);
 			}else{
-				// calendar must have been initialized in a 0x0 iframe that has just been resized
 				lateRender();
 			}
 		}
 	}
 	
+	/* Event Fetching/Rendering*/
 	
-	
-	/* Event Fetching/Rendering
-	-----------------------------------------------------------------------------*/
-	// TODO: going forward, most of this stuff should be directly handled by the view
-
-
-	function refetchEvents() { // can be called as an API method
+	function refetchEvents() { 
 		clearEvents();
 		fetchAndRenderEvents();
 	}
 
-
-	function rerenderEvents(modifiedEventID) { // can be called as an API method
+	function rerenderEvents(modifiedEventID) { 
 		clearEvents();
 		renderEvents(modifiedEventID);
 	}
 
-
-	function renderEvents(modifiedEventID) { // TODO: remove modifiedEventID hack
+	function renderEvents(modifiedEventID) { 
 		if (elementVisible()) {
-			currentView.setEventData(events); // for View.js, TODO: unify with renderEvents
-			currentView.renderEvents(events, modifiedEventID); // actually render the DOM elements
+			currentView.setEventData(events); 
+			currentView.renderEvents(events, modifiedEventID); 
 			currentView.trigger('eventAfterAllRender');
 		}
 	}
 
-
 	function clearEvents() {
-		currentView.triggerEventDestroy(); // trigger 'eventDestroy' for each event
-		currentView.clearEvents(); // actually remove the DOM elements
-		currentView.clearEventData(); // for View.js, TODO: unify with clearEvents
+		currentView.triggerEventDestroy(); 
+		currentView.clearEvents(); 
+		currentView.clearEventData(); 
 	}
 	
-
 	function getAndRenderEvents() {
 		if (!options.lazyFetching || isFetchNeeded(currentView.visStart, currentView.visEnd)) {
 			fetchAndRenderEvents();
@@ -507,36 +468,25 @@ function Calendar(element, options, eventSources) {
 		}
 	}
 
-
 	function fetchAndRenderEvents() {
 		fetchEvents(currentView.visStart, currentView.visEnd);
-			// ... will call reportEvents
-			// ... which will call renderEvents
 	}
 
-	
 	// called when event data arrives
 	function reportEvents(_events) {
 		events = _events;
 		renderEvents();
 	}
-
-
 	// called when a single event's data has been changed
 	function reportEventChange(eventID) {
 		rerenderEvents(eventID);
 	}
 
-
-
-	/* Header Updating
-	-----------------------------------------------------------------------------*/
-
+	/* Header Updating*/
 
 	function updateTitle() {
 		header.updateTitle(currentView.title);
 	}
-
 
 	function updateTodayButton() {
 		var today = new Date();
@@ -548,66 +498,51 @@ function Calendar(element, options, eventSources) {
 		}
 	}
 	
-
-
-	/* Selection
-	-----------------------------------------------------------------------------*/
+	/* Selection*/
 	
-
 	function select(start, end, allDay) {
 		currentView.select(start, end, allDay===undefined ? true : allDay);
 	}
 	
-
-	function unselect() { // safe to be called before renderView
+	function unselect() { 
 		if (currentView) {
 			currentView.unselect();
 		}
 	}
 	
-	
-	
-	/* Date
-	-----------------------------------------------------------------------------*/
-	
+	/* Date*/
 	
 	function prev() {
 		renderView(-1);
 	}
 	
-	
 	function next() {
 		renderView(1);
 	}
-	
 	
 	function prevYear() {
 		addYears(date, -1);
 		renderView();
 	}
 	
-	
 	function nextYear() {
 		addYears(date, 1);
 		renderView();
 	}
-	
 	
 	function today() {
 		date = new Date();
 		renderView();
 	}
 	
-	
 	function gotoDate(year, month, dateOfMonth) {
 		if (year instanceof Date) {
-			date = cloneDate(year); // provided 1 argument, a Date
+			date = cloneDate(year); 
 		}else{
 			setYMD(date, year, month, dateOfMonth);
 		}
 		renderView();
 	}
-	
 	
 	function incrementDate(years, months, days) {
 		if (years !== undefined) {
@@ -622,15 +557,11 @@ function Calendar(element, options, eventSources) {
 		renderView();
 	}
 	
-	
 	function getDate() {
 		return cloneDate(date);
 	}
 
-
-
-	/* Height "Freezing"
-	-----------------------------------------------------------------------------*/
+	/* Height*/
 
 
 	function freezeContentHeight() {
@@ -641,7 +572,6 @@ function Calendar(element, options, eventSources) {
 		});
 	}
 
-
 	function unfreezeContentHeight() {
 		content.css({
 			width: '',
@@ -650,16 +580,11 @@ function Calendar(element, options, eventSources) {
 		});
 	}
 	
-	
-	
-	/* Misc
-	-----------------------------------------------------------------------------*/
-	
+	/* View */
 	
 	function getView() {
 		return currentView;
 	}
-	
 	
 	function option(name, value) {
 		if (value === undefined) {
@@ -671,7 +596,6 @@ function Calendar(element, options, eventSources) {
 		}
 	}
 	
-	
 	function trigger(name, thisObj) {
 		if (options[name]) {
 			return options[name].apply(
@@ -681,17 +605,14 @@ function Calendar(element, options, eventSources) {
 		}
 	}
 	
-	
-	
-	/* External Dragging
-	------------------------------------------------------------------------*/
+	/* External Dragging*/
 	
 	if (options.droppable) {
 		$(document)
 			.bind('dragstart', function(ev, ui) {
 				var _e = ev.target;
 				var e = $(_e);
-				if (!e.parents('.fc').length) { // not already inside a calendar
+				if (!e.parents('.fc').length) { 
 					var accept = options.dropAccept;
 					if ($.isFunction(accept) ? accept.call(_e, e) : e.is(accept)) {
 						_dragElement = _e;
@@ -772,17 +693,17 @@ function Header(calendar, options) {
 					}else{
 						var buttonClick;
 						if (calendar[buttonName]) {
-							buttonClick = calendar[buttonName]; // calendar method
+							buttonClick = calendar[buttonName]; 
 						}
 						else if (fcViews[buttonName]) {
 							buttonClick = function() {
-								button.removeClass(tm + '-state-hover'); // forget why
+								button.removeClass(tm + '-state-hover'); 
 								calendar.changeView(buttonName);
 							};
 						}
 						if (buttonClick) {
-							var icon = options.theme ? smartProperty(options.buttonIcons, buttonName) : null; // why are we using smartProperty here?
-							var text = smartProperty(options.buttonText, buttonName); // why are we using smartProperty here?
+							var icon = options.theme ? smartProperty(options.buttonIcons, buttonName) : null; 
+							var text = smartProperty(options.buttonText, buttonName); 
 							var button = $(
 								"<span class='fc-button fc-button-" + buttonName + " " + tm + "-state-default'>" +
 									(icon ?
@@ -921,8 +842,7 @@ function EventManager(options, _sources) {
 	
 	
 	
-	/* Fetching
-	-----------------------------------------------------------------------------*/
+	/* Fetching*/
 	
 	
 	function isFetchNeeded(start, end) {
@@ -954,9 +874,7 @@ function EventManager(options, _sources) {
 					if (source.eventDataTransform) {
 						events = $.map(events, source.eventDataTransform);
 					}
-					// TODO: this technique is not ideal for static array event sources.
-					//  For arrays, we'll want to process all events right in the beginning, then never again.
-				
+									
 					for (var i=0; i<events.length; i++) {
 						events[i].source = source;
 						normalizeEvent(events[i]);
@@ -979,11 +897,11 @@ function EventManager(options, _sources) {
 		for (i=0; i<fetchers.length; i++) {
 			res = fetchers[i](source, rangeStart, rangeEnd, callback);
 			if (res === true) {
-				// the fetcher is in charge. made its own async request
+				
 				return;
 			}
 			else if (typeof res == 'object') {
-				// the fetcher returned a new source. process it
+				
 				_fetchEventSource(res, callback);
 				return;
 			}
@@ -1009,20 +927,16 @@ function EventManager(options, _sources) {
 				var success = source.success;
 				var error = source.error;
 				var complete = source.complete;
-
-				// retrieve any outbound GET/POST $.ajax data from the options
 				var customData;
 				if ($.isFunction(source.data)) {
-					// supplied as a function that returns a key/value object
+					
 					customData = source.data();
 				}
 				else {
-					// supplied as a straight key/value object
+					
 					customData = source.data;
 				}
 
-				// use a copy of the custom data so we can modify the parameters
-				// and not affect the passed-in object.
 				var data = $.extend({}, customData || {});
 
 				var startParam = firstDefined(source.startParam, options.startParam);
@@ -1062,15 +976,13 @@ function EventManager(options, _sources) {
 	
 	
 	
-	/* Sources
-	-----------------------------------------------------------------------------*/
+	/* Sources*/
 	
-
 	function addEventSource(source) {
 		source = _addEventSource(source);
 		if (source) {
 			pendingSourceCnt++;
-			fetchEventSource(source, currentFetchID); // will eventually call reportEvents
+			fetchEventSource(source, currentFetchID); 
 		}
 	}
 	
@@ -1103,17 +1015,16 @@ function EventManager(options, _sources) {
 	
 	
 	
-	/* Manipulation
-	-----------------------------------------------------------------------------*/
+	/* Manipulation*/
 	
 	
-	function updateEvent(event) { // update an existing event
+	function updateEvent(event) { 
 		var i, len = cache.length, e,
-			defaultEventEnd = getView().defaultEventEnd, // getView???
+			defaultEventEnd = getView().defaultEventEnd, 
 			startDelta = event.start - event._start,
 			endDelta = event.end ?
-				(event.end - (event._end || defaultEventEnd(event))) // event._end would be null if event.end
-				: 0;                                                      // was null and event was just resized
+				(event.end - (event._end || defaultEventEnd(event))) 
+				: 0;                                                      
 		for (i=0; i<len; i++) {
 			e = cache[i];
 			if (e._id == event._id && e != event) {
@@ -1198,11 +1109,7 @@ function EventManager(options, _sources) {
 		return cache; // else, return all
 	}
 	
-	
-	
-	/* Loading State
-	-----------------------------------------------------------------------------*/
-	
+	/* Loading State*/
 	
 	function pushLoading() {
 		if (!loadingLevel++) {
@@ -1210,17 +1117,14 @@ function EventManager(options, _sources) {
 		}
 	}
 	
-	
 	function popLoading() {
 		if (!--loadingLevel) {
 			trigger('loading', null, false, getView());
 		}
 	}
 	
-	
-	
-	/* Event Normalization
-	-----------------------------------------------------------------------------*/
+
+	/* Event Normalization*/
 	
 	
 	function normalizeEvent(event) {
@@ -1249,18 +1153,14 @@ function EventManager(options, _sources) {
 		}else{
 			event.className = [];
 		}
-		// TODO: if there is no start date, return false to indicate an invalid event
+		
 	}
 	
-	
-	
-	/* Utils
-	------------------------------------------------------------------------------*/
-	
+	/* Utils*/
 	
 	function normalizeSource(source) {
 		if (source.className) {
-			// TODO: repeat code, same code for event classNames
+			
 			if (typeof source.className == 'string') {
 				source.className = source.className.split(/\s+/);
 			}
@@ -1299,8 +1199,7 @@ fc.formatDates = formatDates;
 
 
 
-/* Date Math
------------------------------------------------------------------------------*/
+/* Date Math*/
 
 var dayIDs = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
 	DAY_MS = 86400000,
@@ -1317,7 +1216,7 @@ function addYears(d, n, keepTime) {
 }
 
 
-function addMonths(d, n, keepTime) { // prevents day overflow/underflow
+function addMonths(d, n, keepTime) { 
 	if (+d) { // prevent infinite looping on invalid dates
 		var m = d.getMonth() + n,
 			check = cloneDate(d);
@@ -1412,10 +1311,7 @@ function setYMD(date, y, m, d) {
 	}
 }
 
-
-
-/* Date Parsing
------------------------------------------------------------------------------*/
+/* Date Parsing*/
 
 
 function parseDate(s, ignoreTimezone) { // ignoreTimezone defaults to true
@@ -1515,10 +1411,7 @@ function parseTime(s) { // returns minutes since start of day
 
 
 
-/* Date Formatting
------------------------------------------------------------------------------*/
-// TODO: use same function formatDate(date, [date2], format, [options])
-
+/* Date Formatting*/
 
 function formatDate(date, format, options) {
 	return formatDates(date, null, format, options);
@@ -1643,13 +1536,6 @@ var dateFormatters = {
 };
 fc.dateFormatters = dateFormatters;
 
-
-/* thanks jQuery UI (https://github.com/jquery/jquery-ui/blob/master/ui/jquery.ui.datepicker.js)
- * 
- * Set as calculateWeek to determine the week of the year based on the ISO 8601 definition.
- * `date` - the date to get the week for
- * `number` - the number of the week within the year that contains this date
- */
 function iso8601Week(date) {
 	var time;
 	var checkDate = new Date(date.getTime());
@@ -1669,8 +1555,7 @@ function iso8601Week(date) {
 fc.applyAll = applyAll;
 
 
-/* Event Date Math
------------------------------------------------------------------------------*/
+/* Event Date Math*/
 
 
 function exclEndDay(event) {
@@ -1681,18 +1566,12 @@ function exclEndDay(event) {
 	}
 }
 
-
 function _exclEndDay(end, allDay) {
 	end = cloneDate(end);
 	return allDay || end.getHours() || end.getMinutes() ? addDays(end, 1) : clearTime(end);
-	// why don't we check for seconds/ms too?
 }
 
-
-
-/* Event Element Binding
------------------------------------------------------------------------------*/
-
+/* Event Element Binding*/
 
 function lazySegBind(container, segs, bindHandlers) {
 	container.unbind('mouseover').mouseover(function(ev) {
@@ -1712,11 +1591,7 @@ function lazySegBind(container, segs, bindHandlers) {
 	});
 }
 
-
-
-/* Element Dimensions
------------------------------------------------------------------------------*/
-
+/* Element Dimensions*/
 
 function setOuterWidth(element, width, includeMargins) {
 	for (var i=0, e; i<element.length; i++) {
@@ -1725,7 +1600,6 @@ function setOuterWidth(element, width, includeMargins) {
 	}
 }
 
-
 function setOuterHeight(element, height, includeMargins) {
 	for (var i=0, e; i<element.length; i++) {
 		e = $(element[i]);
@@ -1733,11 +1607,9 @@ function setOuterHeight(element, height, includeMargins) {
 	}
 }
 
-
 function hsides(element, includeMargins) {
 	return hpadding(element) + hborders(element) + (includeMargins ? hmargins(element) : 0);
 }
-
 
 function hpadding(element) {
 	return (parseFloat($.css(element[0], 'paddingLeft', true)) || 0) +
@@ -1779,15 +1651,7 @@ function vborders(element) {
 	       (parseFloat($.css(element[0], 'borderBottomWidth', true)) || 0);
 }
 
-
-
-/* Misc Utils
------------------------------------------------------------------------------*/
-
-
-//TODO: arraySlice
-//TODO: isFunction, grep ?
-
+/* Misc Utils*/
 
 function noop() { }
 
@@ -1807,7 +1671,7 @@ function zeroPad(n) {
 }
 
 
-function smartProperty(obj, name) { // get a camel-cased/namespaced property of an object
+function smartProperty(obj, name) { 
 	if (obj[name] !== undefined) {
 		return obj[name];
 	}
@@ -1841,16 +1705,6 @@ function disableTextSelection(element) {
 }
 
 
-/*
-function enableTextSelection(element) {
-	element
-		.attr('unselectable', 'off')
-		.css('MozUserSelect', '')
-		.unbind('selectstart.ui');
-}
-*/
-
-
 function markFirstLast(e) {
 	e.children()
 		.removeClass('fc-first fc-last')
@@ -1865,7 +1719,6 @@ function markFirstLast(e) {
 function setDayID(cell, date) {
 	cell.each(function(i, _cell) {
 		_cell.className = _cell.className.replace(/^fc-\w*/, 'fc-' + dayIDs[date.getDay()]);
-		// TODO: make a way that doesn't rely on order of classes
 	});
 }
 
@@ -1975,10 +1828,10 @@ function MonthView(element, calendar) {
 		skipHiddenDays(visEnd, -1, true);
 
 		var colCnt = getCellsPerWeek();
-		var rowCnt = Math.round(dayDiff(visEnd, visStart) / 7); // should be no need for Math.round
+		var rowCnt = Math.round(dayDiff(visEnd, visStart) / 7); 
 
 		if (opt('weekMode') == 'fixed') {
-			addDays(visEnd, (6 - rowCnt) * 7); // add weeks to make up for it
+			addDays(visEnd, (6 - rowCnt) * 7); 
 			rowCnt = 6;
 		}
 
@@ -2111,7 +1964,7 @@ function BasicView(element, calendar, viewName) {
 	t.defaultSelectionEnd = defaultSelectionEnd;
 	t.renderSelection = renderSelection;
 	t.clearSelection = clearSelection;
-	t.reportDayClick = reportDayClick; // for selection (kinda hacky)
+	t.reportDayClick = reportDayClick; 
 	t.dragStart = dragStart;
 	t.dragStop = dragStop;
 	t.defaultEventEnd = defaultEventEnd;
@@ -2177,12 +2030,9 @@ function BasicView(element, calendar, viewName) {
 	
 	
 	
-	/* Rendering
-	------------------------------------------------------------*/
-	
+	/* Rendering*/
 	
 	disableTextSelection(element.addClass('fc-grid'));
-	
 	
 	function renderBasic(_rowCnt, _colCnt, _showNumbers) {
 		rowCnt = _rowCnt;
@@ -2201,8 +2051,6 @@ function BasicView(element, calendar, viewName) {
 	function updateOptions() {
 		tm = opt('theme') ? 'ui' : 'fc';
 		colFormat = opt('columnFormat');
-
-		// week # options. (TODO: bad, logic also in other views)
 		showWeekNumbers = opt('weekNumbers');
 		weekNumberTitle = opt('weekNumberTitle');
 		if (opt('weekNumberCalculation') != 'iso') {
@@ -2239,8 +2087,8 @@ function BasicView(element, calendar, viewName) {
 		firstRowCellInners = bodyRows.eq(0).find('.fc-day > div');
 		firstRowCellContentInners = bodyRows.eq(0).find('.fc-day-content > div');
 		
-		markFirstLast(head.add(head.find('tr'))); // marks first+last tr/th's
-		markFirstLast(bodyRows); // marks first+last td's
+		markFirstLast(head.add(head.find('tr'))); 
+		markFirstLast(bodyRows); 
 		bodyRows.eq(0).addClass('fc-first');
 		bodyRows.filter(':last').addClass('fc-last');
 
@@ -2257,9 +2105,7 @@ function BasicView(element, calendar, viewName) {
 
 
 
-	/* HTML Building
-	-----------------------------------------------------------*/
-
+	/* HTML Building*/
 
 	function buildTableHTML() {
 		var html =
@@ -2270,7 +2116,6 @@ function BasicView(element, calendar, viewName) {
 
 		return html;
 	}
-
 
 	function buildHeadHTML() {
 		var headerClass = tm + "-widget-header";
@@ -2388,9 +2233,7 @@ function BasicView(element, calendar, viewName) {
 
 
 
-	/* Dimensions
-	-----------------------------------------------------------*/
-	
+	/* Dimensions*/
 	
 	function setHeight(height) {
 		viewHeight = height;
@@ -2436,9 +2279,7 @@ function BasicView(element, calendar, viewName) {
 	
 	
 	
-	/* Day clicking and binding
-	-----------------------------------------------------------*/
-	
+	/* Day clicking and binding*/
 	
 	function dayBind(days) {
 		days.click(dayClick)
@@ -2447,20 +2288,13 @@ function BasicView(element, calendar, viewName) {
 	
 	
 	function dayClick(ev) {
-		if (!opt('selectable')) { // if selectable, SelectionManager will worry about dayClick
+		if (!opt('selectable')) { 
 			var date = parseISO8601($(this).data('date'));
 			trigger('dayClick', this, date, true, ev);
 		}
 	}
 	
-	
-	
-	/* Semi-transparent Overlay Helpers
-	------------------------------------------------------*/
-	// TODO: should be consolidated with AgendaView's methods
-
-
-	function renderDayOverlay(overlayStart, overlayEnd, refreshCoordinateGrid) { // overlayEnd is exclusive
+	function renderDayOverlay(overlayStart, overlayEnd, refreshCoordinateGrid) { 
 
 		if (refreshCoordinateGrid) {
 			coordinateGrid.build();
@@ -2482,16 +2316,14 @@ function BasicView(element, calendar, viewName) {
 	}
 
 	
-	function renderCellOverlay(row0, col0, row1, col1) { // row1,col1 is inclusive
+	function renderCellOverlay(row0, col0, row1, col1) { 
 		var rect = coordinateGrid.rect(row0, col0, row1, col1, element);
 		return renderOverlay(rect, element);
 	}
 	
 	
 	
-	/* Selection
-	-----------------------------------------------------------------------*/
-	
+	/* Selection*/
 	
 	function defaultSelectionEnd(startDate, allDay) {
 		return cloneDate(startDate);
@@ -2499,7 +2331,7 @@ function BasicView(element, calendar, viewName) {
 	
 	
 	function renderSelection(startDate, endDate, allDay) {
-		renderDayOverlay(startDate, addDays(cloneDate(endDate), 1), true); // rebuild every time???
+		renderDayOverlay(startDate, addDays(cloneDate(endDate), 1), true); 
 	}
 	
 	
@@ -2514,10 +2346,7 @@ function BasicView(element, calendar, viewName) {
 		trigger('dayClick', _element, date, allDay, ev);
 	}
 	
-	
-	
-	/* External Dragging
-	-----------------------------------------------------------------------*/
+	/* External Dragging*/
 	
 	
 	function dragStart(_dragElement, ev, ui) {
@@ -2538,18 +2367,13 @@ function BasicView(element, calendar, viewName) {
 			trigger('drop', _dragElement, d, true, ev, ui);
 		}
 	}
+
 	
-	
-	
-	/* Utilities
-	--------------------------------------------------------*/
-	
+	/* Utilities*/
 	
 	function defaultEventEnd(event) {
 		return cloneDate(event.start);
 	}
-	
-	
 	coordinateGrid = new CoordinateGrid(function(rows, cols) {
 		var e, n, p;
 		headCells.each(function(i, _e) {
@@ -2638,8 +2462,6 @@ function BasicEventRenderer() {
 		t.getDaySegmentContainer().empty();
 	}
 
-
-	// TODO: have this class (and AgendaEventRenderer) be responsible for creating the event container div
 
 }
 
@@ -2760,10 +2582,6 @@ setDefaults({
 });
 
 
-// TODO: make it work in quirks mode (event corners, all-day height)
-// TODO: test liquid width, especially in IE6
-
-
 function AgendaView(element, calendar, viewName) {
 	var t = this;
 	
@@ -2777,7 +2595,7 @@ function AgendaView(element, calendar, viewName) {
 	t.timePosition = timePosition;
 	t.getIsCellAllDay = getIsCellAllDay;
 	t.allDayRow = getAllDayRow;
-	t.getCoordinateGrid = function() { return coordinateGrid }; // specifically for AgendaEventRenderer
+	t.getCoordinateGrid = function() { return coordinateGrid }; 
 	t.getHoverListener = function() { return hoverListener };
 	t.colLeft = colLeft;
 	t.colRight = colRight;
@@ -2797,7 +2615,7 @@ function AgendaView(element, calendar, viewName) {
 	t.renderDayOverlay = renderDayOverlay;
 	t.renderSelection = renderSelection;
 	t.clearSelection = clearSelection;
-	t.reportDayClick = reportDayClick; // selection mousedown hack
+	t.reportDayClick = reportDayClick; 
 	t.dragStart = dragStart;
 	t.dragStop = dragStop;
 	
@@ -2847,11 +2665,11 @@ function AgendaView(element, calendar, viewName) {
 	var axisWidth;
 	var colWidth;
 	var gutterWidth;
-	var slotHeight; // TODO: what if slotHeight changes? (see issue 650)
+	var slotHeight; 
 
 	var snapMinutes;
-	var snapRatio; // ratio of number of "selection" slots to normal slots. (ex: 1, 2, 4)
-	var snapHeight; // holds the pixel hight of a "selection" slot
+	var snapRatio; 
+	var snapHeight; 
 	
 	var colCnt;
 	var slotCnt;
@@ -2869,11 +2687,7 @@ function AgendaView(element, calendar, viewName) {
 	var weekNumberTitle;
 	var weekNumberFormat;
 	
-
-	
-	/* Rendering
-	-----------------------------------------------------------------------------*/
-	
+	/* Rendering*/
 	
 	disableTextSelection(element.addClass('fc-agenda'));
 	
@@ -2882,11 +2696,11 @@ function AgendaView(element, calendar, viewName) {
 		colCnt = c;
 		updateOptions();
 
-		if (!dayTable) { // first time rendering?
-			buildSkeleton(); // builds day table, slot area, events containers
+		if (!dayTable) { 
+			buildSkeleton(); 
 		}
 		else {
-			buildDayTable(); // rebuilds day table
+			buildDayTable(); 
 		}
 	}
 	
@@ -2899,7 +2713,6 @@ function AgendaView(element, calendar, viewName) {
 		maxMinute = parseTime(opt('maxTime'));
 		colFormat = opt('columnFormat');
 
-		// week # options. (TODO: bad, logic also in other views)
 		showWeekNumbers = opt('weekNumbers');
 		weekNumberTitle = opt('weekNumberTitle');
 		if (opt('weekNumberCalculation') != 'iso') {
@@ -2912,11 +2725,7 @@ function AgendaView(element, calendar, viewName) {
 		snapMinutes = opt('snapMinutes') || opt('slotMinutes');
 	}
 
-
-
-	/* Build DOM
-	-----------------------------------------------------------------------*/
-
+	/* Build DOM*/
 
 	function buildSkeleton() {
 		var headerClass = tm + "-widget-header";
@@ -2963,7 +2772,7 @@ function AgendaView(element, calendar, viewName) {
 			
 		}else{
 		
-			daySegmentContainer = $([]); // in jQuery 1.4, we can just do $()
+			daySegmentContainer = $([]); 
 		
 		}
 		
@@ -3010,9 +2819,7 @@ function AgendaView(element, calendar, viewName) {
 
 
 
-	/* Build Day Table
-	-----------------------------------------------------------------------*/
-
+	/* Build Day Table*/
 
 	function buildDayTable() {
 		var html = buildDayTableHTML();
@@ -3034,8 +2841,6 @@ function AgendaView(element, calendar, viewName) {
 		
 		markFirstLast(dayHead.add(dayHead.find('tr')));
 		markFirstLast(dayBody.add(dayBody.find('tr')));
-
-		// TODO: now that we rebuild the cells every time, we should call dayRender
 	}
 
 
@@ -3097,7 +2902,7 @@ function AgendaView(element, calendar, viewName) {
 
 
 	function buildDayTableBodyHTML() {
-		var headerClass = tm + "-widget-header"; // TODO: make these when updateOptions() called
+		var headerClass = tm + "-widget-header"; 
 		var contentClass = tm + "-widget-content";
 		var date;
 		var today = clearTime(new Date());
@@ -3156,16 +2961,8 @@ function AgendaView(element, calendar, viewName) {
 
 		return html;
 	}
-
-
-	// TODO: data-date on the cells
-
 	
-	
-	/* Dimensions
-	-----------------------------------------------------------------------*/
-
-	
+	/* Dimensions*/
 	function setHeight(height) {
 		if (height === undefined) {
 			height = viewHeight;
@@ -3187,8 +2984,6 @@ function AgendaView(element, calendar, viewName) {
 		
 		slotScroller.height(bodyHeight - allDayHeight - 1);
 		
-		// the stylesheet guarantees that the first row has no border.
-		// this allows .height() to work well cross-browser.
 		slotHeight = slotTable.find('tr:first').height() + 1; // +1 for bottom border
 
 		snapRatio = opt('slotMinutes') / snapMinutes;
@@ -3242,11 +3037,7 @@ function AgendaView(element, calendar, viewName) {
 		setOuterWidth(dayHeadCells.slice(0, -1), colWidth);
 	}
 	
-
-
-	/* Scrolling
-	-----------------------------------------------------------------------*/
-
+	/* Scrolling*/
 
 	function resetScroll() {
 		var d0 = zeroDate();
@@ -3257,37 +3048,31 @@ function AgendaView(element, calendar, viewName) {
 			slotScroller.scrollTop(top);
 		}
 		scroll();
-		setTimeout(scroll, 0); // overrides any previous scroll state made by the browser
+		setTimeout(scroll, 0); 
 	}
 
-
-	function afterRender() { // after the view has been freshly rendered and sized
+	function afterRender() { 
 		resetScroll();
 	}
 	
 	
-	
-	/* Slot/Day clicking and binding
-	-----------------------------------------------------------------------*/
-	
+	/* Slot/Day clicking and binding*/
 
 	function dayBind(cells) {
 		cells.click(slotClick)
 			.mousedown(daySelectionMousedown);
 	}
 
-
 	function slotBind(cells) {
 		cells.click(slotClick)
 			.mousedown(slotSelectionMousedown);
 	}
 	
-	
 	function slotClick(ev) {
-		if (!opt('selectable')) { // if selectable, SelectionManager will worry about dayClick
+		if (!opt('selectable')) { 
 			var col = Math.min(colCnt-1, Math.floor((ev.pageX - dayTable.offset().left - axisWidth) / colWidth));
 			var date = cellToDate(0, col);
-			var rowMatch = this.parentNode.className.match(/fc-slot(\d+)/); // TODO: maybe use data
+			var rowMatch = this.parentNode.className.match(/fc-slot(\d+)/); 
 			if (rowMatch) {
 				var mins = parseInt(rowMatch[1]) * opt('slotMinutes');
 				var hours = Math.floor(mins/60);
@@ -3300,14 +3085,11 @@ function AgendaView(element, calendar, viewName) {
 		}
 	}
 	
-	
-	
-	/* Semi-transparent Overlay Helpers
-	-----------------------------------------------------*/
-	// TODO: should be consolidated with BasicView's methods
+	/* Semi-transparent Overlay Helpers*/
 
 
-	function renderDayOverlay(overlayStart, overlayEnd, refreshCoordinateGrid) { // overlayEnd is exclusive
+
+	function renderDayOverlay(overlayStart, overlayEnd, refreshCoordinateGrid) { 
 
 		if (refreshCoordinateGrid) {
 			coordinateGrid.build();
@@ -3329,7 +3111,7 @@ function AgendaView(element, calendar, viewName) {
 	}
 	
 	
-	function renderCellOverlay(row0, col0, row1, col1) { // only for all-day?
+	function renderCellOverlay(row0, col0, row1, col1) { 
 		var rect = coordinateGrid.rect(row0, col0, row1, col1, slotLayer);
 		return renderOverlay(rect, slotLayer);
 	}
@@ -3342,7 +3124,7 @@ function AgendaView(element, calendar, viewName) {
 			var stretchStart = new Date(Math.max(dayStart, overlayStart));
 			var stretchEnd = new Date(Math.min(dayEnd, overlayEnd));
 			if (stretchStart < stretchEnd) {
-				var rect = coordinateGrid.rect(0, i, 0, i, slotContainer); // only use it for horizontal coords
+				var rect = coordinateGrid.rect(0, i, 0, i, slotContainer); 
 				var top = timePosition(dayStart, stretchStart);
 				var bottom = timePosition(dayStart, stretchEnd);
 				rect.top = top;
@@ -3354,10 +3136,7 @@ function AgendaView(element, calendar, viewName) {
 		}
 	}
 	
-	
-	
-	/* Coordinate Utilities
-	-----------------------------------------------------------------------------*/
+	/* Coordinate Utilities*/
 	
 	
 	coordinateGrid = new CoordinateGrid(function(rows, cols) {
@@ -3383,7 +3162,7 @@ function AgendaView(element, calendar, viewName) {
 		function constrain(n) {
 			return Math.max(slotScrollerTop, Math.min(slotScrollerBottom, n));
 		}
-		for (var i=0; i<slotCnt*snapRatio; i++) { // adapt slot count to increased/decreased selection slot count
+		for (var i=0; i<slotCnt*snapRatio; i++) { 
 			rows.push([
 				constrain(slotTableTop + snapHeight*i),
 				constrain(slotTableTop + snapHeight*(i+1))
@@ -3428,7 +3207,7 @@ function AgendaView(element, calendar, viewName) {
 	}
 
 
-	function realCellToDate(cell) { // ugh "real" ... but blame it on our abuse of the "cell" system
+	function realCellToDate(cell) { 
 		var d = cellToDate(0, cell.col);
 		var slotIndex = cell.row;
 		if (opt('allDaySlot')) {
@@ -3440,9 +3219,7 @@ function AgendaView(element, calendar, viewName) {
 		return d;
 	}
 	
-	
-	// get the Y coordinate of the given time on the given day (both Date objects)
-	function timePosition(day, time) { // both date objects. day holds 00:00 of current day
+	function timePosition(day, time) { 
 		day = cloneDate(day, true);
 		if (time < addMinutes(cloneDate(day), minMinute)) {
 			return 0;
@@ -3457,20 +3234,15 @@ function AgendaView(element, calendar, viewName) {
 		if (slotTop === undefined) {
 			slotTop = slotTopCache[slotI] =
 				slotTable.find('tr').eq(slotI).find('td div')[0].offsetTop;
-				// .eq() is faster than ":eq()" selector
-				// [0].offsetTop is faster than .position().top (do we really need this optimization?)
-				// a better optimization would be to cache all these divs
 		}
 		return Math.max(0, Math.round(
 			slotTop - 1 + slotHeight * ((minutes % slotMinutes) / slotMinutes)
 		));
 	}
 	
-	
 	function getAllDayRow(index) {
 		return allDayRow;
 	}
-	
 	
 	function defaultEventEnd(event) {
 		var start = cloneDate(event.start);
@@ -3480,10 +3252,7 @@ function AgendaView(element, calendar, viewName) {
 		return addMinutes(start, opt('defaultEventMinutes'));
 	}
 	
-	
-	
-	/* Selection
-	---------------------------------------------------------------------------------*/
+	/* Selection*/
 	
 	
 	function defaultSelectionEnd(startDate, allDay) {
@@ -3494,7 +3263,7 @@ function AgendaView(element, calendar, viewName) {
 	}
 	
 	
-	function renderSelection(startDate, endDate, allDay) { // only for all-day
+	function renderSelection(startDate, endDate, allDay) { 
 		if (allDay) {
 			if (opt('allDaySlot')) {
 				renderDayOverlay(startDate, addDays(cloneDate(endDate), 1), true);
@@ -3528,8 +3297,8 @@ function AgendaView(element, calendar, viewName) {
 								.appendTo(slotContainer);
 						}
 					}else{
-						rect.isStart = true; // conside rect a "seg" now
-						rect.isEnd = true;   //
+						rect.isStart = true; 
+						rect.isEnd = true;   
 						selectionHelper = $(slotSegHtml(
 							{
 								title: '',
@@ -3604,8 +3373,7 @@ function AgendaView(element, calendar, viewName) {
 	
 	
 	
-	/* External Dragging
-	--------------------------------------------------------------------------------*/
+	/* External Dragging*/
 	
 	
 	function dragStart(_dragElement, ev, ui) {
@@ -3689,8 +3457,7 @@ function AgendaEventRenderer() {
 
 	
 	
-	/* Rendering
-	----------------------------------------------------------------------------*/
+	/* Rendering*/
 	
 
 	function renderEvents(events, modifiedEventId) {
@@ -3707,7 +3474,7 @@ function AgendaEventRenderer() {
 
 		if (opt('allDaySlot')) {
 			renderDayEvents(dayEvents, modifiedEventId);
-			setHeight(); // no params means set to viewHeight
+			setHeight(); 
 		}
 
 		renderSlotSegs(compileSlotSegs(slotEvents), modifiedEventId);
@@ -3743,7 +3510,7 @@ function AgendaEventRenderer() {
 				addMinutes(cloneDate(d), maxMinute-minMinute)
 			);
 
-			colSegs = placeSlotSegs(colSegs); // returns a new order
+			colSegs = placeSlotSegs(colSegs); 
 
 			for (j=0; j<colSegs.length; j++) {
 				seg = colSegs[j];
@@ -3802,11 +3569,6 @@ function AgendaEventRenderer() {
 		}
 	}
 	
-	
-	// renders events in the 'time slots' at the bottom
-	// TODO: when we refactor this, when user returns `false` eventRender, don't have empty space
-	// TODO: refactor will include using pixels to detect collisions instead of dates (handy for seg cmp)
-	
 	function renderSlotSegs(segs, modifiedEventId) {
 	
 		var i, segCnt=segs.length, seg,
@@ -3839,19 +3601,16 @@ function AgendaEventRenderer() {
 			columnWidth = columnRight - columnLeft;
 
 			// shave off space on right near scrollbars (2.5%)
-			// TODO: move this to CSS somehow
+	
 			columnRight -= columnWidth * .025;
 			columnWidth = columnRight - columnLeft;
 
 			width = columnWidth * (seg.forwardCoord - seg.backwardCoord);
 
 			if (opt('slotEventOverlap')) {
-				// double the width while making sure resize handle is visible
-				// (assumed to be 20px wide)
 				width = Math.max(
 					(width - (20/2)) * 2,
-					width // narrow columns will want to make the segment smaller than
-						// the natural width. don't allow it
+					width 
 				);
 			}
 
@@ -3864,7 +3623,6 @@ function AgendaEventRenderer() {
 				right = left + width;
 			}
 
-			// make sure horizontal coordinates are in bounds
 			left = Math.max(left, columnLeft);
 			right = Math.min(right, columnRight);
 			width = right - left;
@@ -3876,14 +3634,13 @@ function AgendaEventRenderer() {
 			html += slotSegHtml(event, seg);
 		}
 
-		slotSegmentContainer[0].innerHTML = html; // faster than html()
+		slotSegmentContainer[0].innerHTML = html; 
 		eventElements = slotSegmentContainer.children();
 		
-		// retrieve elements, run through eventRender callback, bind event handlers
 		for (i=0; i<segCnt; i++) {
 			seg = segs[i];
 			event = seg.event;
-			eventElement = $(eventElements[i]); // faster than eq()
+			eventElement = $(eventElements[i]); 
 			triggerRes = trigger('eventRender', event, event, eventElement);
 			if (triggerRes === false) {
 				eventElement.remove();
@@ -3902,7 +3659,7 @@ function AgendaEventRenderer() {
 				if (event._id === modifiedEventId) {
 					bindSlotSeg(event, eventElement, seg);
 				}else{
-					eventElement[0]._fci = i; // for lazySegBind
+					eventElement[0]._fci = i; 
 				}
 				reportEventElement(event, eventElement);
 			}
@@ -3910,7 +3667,6 @@ function AgendaEventRenderer() {
 		
 		lazySegBind(slotSegmentContainer, segs, bindSlotSeg);
 		
-		// record event sides and title positions
 		for (i=0; i<segCnt; i++) {
 			seg = segs[i];
 			if (eventElement = seg.element) {
@@ -3932,7 +3688,6 @@ function AgendaEventRenderer() {
 				eventElement[0].style.height = height + 'px';
 				event = seg.event;
 				if (seg.contentTop !== undefined && height - seg.contentTop < 10) {
-					// not enough room for title, put it in the time (TODO: maybe make both display:inline instead)
 					eventElement.find('div.fc-event-time')
 						.text(formatDate(event.start, opt('timeFormat')) + ' - ' + event.title);
 					eventElement.find('div.fc-event-title')
@@ -3943,7 +3698,6 @@ function AgendaEventRenderer() {
 		}
 					
 	}
-	
 	
 	function slotSegHtml(event, seg) {
 		var html = "<";
@@ -4008,15 +3762,7 @@ function AgendaEventRenderer() {
 		eventElementHandlers(event, eventElement);
 	}
 	
-	
-	
-	/* Dragging
-	-----------------------------------------------------------------------------------*/
-	
-	
-	// when event starts out FULL-DAY
-	// overrides DayEventRenderer's version because it needs to account for dragging elements
-	// to and from the slot area.
+	/* Dragging*/
 	
 	function draggableDayEvent(event, eventElement, seg) {
 		var isStart = seg.isStart;
@@ -4030,7 +3776,7 @@ function AgendaEventRenderer() {
 		var snapMinutes = getSnapMinutes();
 		var minMinute = getMinMinute();
 		eventElement.draggable({
-			opacity: opt('dragOpacity', 'month'), // use whatever the month view was using
+			opacity: opt('dragOpacity', 'month'), 
 			revertDuration: opt('dragRevertDuration'),
 			start: function(ev, ui) {
 				trigger('eventDragStart', eventElement, event, ev, ui);
@@ -4054,8 +3800,8 @@ function AgendaEventRenderer() {
 							// mouse is over bottom slots
 							if (isStart) {
 								if (allDay) {
-									// convert event to temporary slot-event
-									eventElement.width(colWidth - 10); // don't use entire width
+
+									eventElement.width(colWidth - 10); 
 									setOuterHeight(
 										eventElement,
 										snapHeight * Math.round(
@@ -4083,12 +3829,12 @@ function AgendaEventRenderer() {
 				clearOverlays();
 				trigger('eventDragStop', eventElement, event, ev, ui);
 				if (revert) {
-					// hasn't moved or is out of bounds (draggable has already reverted)
+					
 					resetElement();
-					eventElement.css('filter', ''); // clear IE opacity side-effects
+					eventElement.css('filter', ''); 
 					showEvents(event, eventElement);
 				}else{
-					// changed!
+					
 					var minuteDelta = 0;
 					if (!allDay) {
 						minuteDelta = Math.round((eventElement.offset().top - getSlotContainer().offset().top) / snapHeight)
@@ -4122,7 +3868,7 @@ function AgendaEventRenderer() {
 		var snapMinutes = getSnapMinutes();
 
 		// states
-		var origPosition; // original position of the element, not the mouse
+		var origPosition; 
 		var origCell;
 		var isInBounds, prevIsInBounds;
 		var isAllDay, prevIsAllDay;
@@ -4154,16 +3900,8 @@ function AgendaEventRenderer() {
 
 			},
 			drag: function(ev, ui) {
-
-				// NOTE: this `cell` value is only useful for determining in-bounds and all-day.
-				// Bad for anything else due to the discrepancy between the mouse position and the
-				// element position while snapping. (problem revealed in PR #55)
-				//
-				// PS- the problem exists for draggableDayEvent() when dragging an all-day event to a slot event.
-				// We should overhaul the dragging system and stop relying on jQuery UI.
 				var cell = coordinateGrid.cell(ev.pageX, ev.pageY);
 
-				// update states
 				isInBounds = !!cell;
 				if (isInBounds) {
 					isAllDay = getIsCellAllDay(cell);
@@ -4171,7 +3909,6 @@ function AgendaEventRenderer() {
 					// calculate column delta
 					colDelta = Math.round((ui.position.left - origPosition.left) / colWidth);
 					if (colDelta != prevColDelta) {
-						// calculate the day delta based off of the original clicked column and the column delta
 						var origDate = cellToDate(0, origCell.col);
 						var col = origCell.col + colDelta;
 						col = Math.max(0, col);
@@ -4186,7 +3923,6 @@ function AgendaEventRenderer() {
 					}
 				}
 
-				// any state changes?
 				if (
 					isInBounds != prevIsInBounds ||
 					isAllDay != prevIsAllDay ||
@@ -4196,7 +3932,6 @@ function AgendaEventRenderer() {
 
 					updateUI();
 
-					// update previous states for next time
 					prevIsInBounds = isInBounds;
 					prevIsAllDay = isAllDay;
 					prevColDelta = colDelta;
@@ -4215,7 +3950,7 @@ function AgendaEventRenderer() {
 				if (isInBounds && (isAllDay || dayDelta || minuteDelta)) { // changed!
 					eventDrop(this, event, dayDelta, isAllDay ? 0 : minuteDelta, isAllDay, ev, ui);
 				}
-				else { // either no change or out-of-bounds (draggable has already reverted)
+				else { 
 
 					// reset states for next time, and for updateUI()
 					isInBounds = true;
@@ -4225,11 +3960,9 @@ function AgendaEventRenderer() {
 					minuteDelta = 0;
 
 					updateUI();
-					eventElement.css('filter', ''); // clear IE opacity side-effects
+					eventElement.css('filter', ''); 
 
-					// sometimes fast drags make event revert to wrong position, so reset.
-					// also, if we dragged the element out of the area because of snapping,
-					// but the *mouse* is still in bounds, we need to reset the position.
+					
 					eventElement.css(origPosition);
 
 					showEvents(event, eventElement);
@@ -4269,9 +4002,7 @@ function AgendaEventRenderer() {
 	
 	
 	
-	/* Resizing
-	--------------------------------------------------------------------------------------*/
-	
+	/* Resizing*/
 	
 	function resizableSlotEvent(event, eventElement, timeElement) {
 		var snapDelta, prevSnapDelta;
@@ -4288,13 +4019,13 @@ function AgendaEventRenderer() {
 				trigger('eventResizeStart', this, event, ev, ui);
 			},
 			resize: function(ev, ui) {
-				// don't rely on ui.size.height, doesn't take grid into account
+				
 				snapDelta = Math.round((Math.max(snapHeight, eventElement.height()) - ui.originalSize.height) / snapHeight);
 				if (snapDelta != prevSnapDelta) {
 					timeElement.text(
 						formatDates(
 							event.start,
-							(!snapDelta && !event.end) ? null : // no change, so don't display time range
+							(!snapDelta && !event.end) ? null : 
 								addMinutes(eventEnd(event), snapMinutes*snapDelta),
 							opt('timeFormat')
 						)
@@ -4308,7 +4039,7 @@ function AgendaEventRenderer() {
 					eventResize(this, event, 0, snapMinutes*snapDelta, ev, ui);
 				}else{
 					showEvents(event, eventElement);
-					// BUG: if event was really short, need to put title back in span
+					
 				}
 			}
 		});
@@ -4317,14 +4048,8 @@ function AgendaEventRenderer() {
 
 }
 
+/* Agenda Event Segment Utilities*/
 
-
-/* Agenda Event Segment Utilities
------------------------------------------------------------------------------*/
-
-
-// Sets the seg.backwardCoord and seg.forwardCoord on each segment and returns a new
-// list in the order they should be placed into the DOM (an implicit z-index).
 function placeSlotSegs(segs) {
 	var levels = buildSlotSegLevels(segs);
 	var level0 = levels[0];
@@ -4346,9 +4071,6 @@ function placeSlotSegs(segs) {
 	return flattenSlotSegLevels(levels);
 }
 
-
-// Builds an array of segments "levels". The first level will be the leftmost tier of segments
-// if the calendar is left-to-right, or the rightmost if the calendar is right-to-left.
 function buildSlotSegLevels(segs) {
 	var levels = [];
 	var i, seg;
@@ -4357,7 +4079,6 @@ function buildSlotSegLevels(segs) {
 	for (i=0; i<segs.length; i++) {
 		seg = segs[i];
 
-		// go through all the levels and stop on the first level where there are no collisions
 		for (j=0; j<levels.length; j++) {
 			if (!computeSlotSegCollisions(seg, levels[j]).length) {
 				break;
@@ -4370,9 +4091,6 @@ function buildSlotSegLevels(segs) {
 	return levels;
 }
 
-
-// For every segment, figure out the other segments that are in subsequent
-// levels that also occupy the same vertical space. Accumulate in seg.forwardSegs
 function computeForwardSlotSegs(levels) {
 	var i, level;
 	var j, seg;
@@ -4393,23 +4111,18 @@ function computeForwardSlotSegs(levels) {
 }
 
 
-// Figure out which path forward (via seg.forwardSegs) results in the longest path until
-// the furthest edge is reached. The number of segments in this path will be seg.forwardPressure
 function computeSlotSegPressures(seg) {
 	var forwardSegs = seg.forwardSegs;
 	var forwardPressure = 0;
 	var i, forwardSeg;
 
-	if (seg.forwardPressure === undefined) { // not already computed
+	if (seg.forwardPressure === undefined) { 
 
 		for (i=0; i<forwardSegs.length; i++) {
 			forwardSeg = forwardSegs[i];
 
-			// figure out the child's maximum forward path
 			computeSlotSegPressures(forwardSeg);
 
-			// either use the existing maximum, or use the child's forward pressure
-			// plus one (for the forwardSeg itself)
 			forwardPressure = Math.max(
 				forwardPressure,
 				1 + forwardSeg.forwardPressure
@@ -4420,24 +4133,14 @@ function computeSlotSegPressures(seg) {
 	}
 }
 
-
-// Calculate seg.forwardCoord and seg.backwardCoord for the segment, where both values range
-// from 0 to 1. If the calendar is left-to-right, the seg.backwardCoord maps to "left" and
-// seg.forwardCoord maps to "right" (via percentage). Vice-versa if the calendar is right-to-left.
-//
-// The segment might be part of a "series", which means consecutive segments with the same pressure
-// who's width is unknown until an edge has been hit. `seriesBackwardPressure` is the number of
-// segments behind this one in the current series, and `seriesBackwardCoord` is the starting
-// coordinate of the first segment in the series.
 function computeSlotSegCoords(seg, seriesBackwardPressure, seriesBackwardCoord) {
 	var forwardSegs = seg.forwardSegs;
 	var i;
 
-	if (seg.forwardCoord === undefined) { // not already computed
+	if (seg.forwardCoord === undefined) { 
 
 		if (!forwardSegs.length) {
 
-			// if there are no forward segments, this segment should butt up against the edge
 			seg.forwardCoord = 1;
 		}
 		else {
@@ -4445,19 +4148,14 @@ function computeSlotSegCoords(seg, seriesBackwardPressure, seriesBackwardCoord) 
 			// sort highest pressure first
 			forwardSegs.sort(compareForwardSlotSegs);
 
-			// this segment's forwardCoord will be calculated from the backwardCoord of the
-			// highest-pressure forward segment.
 			computeSlotSegCoords(forwardSegs[0], seriesBackwardPressure + 1, seriesBackwardCoord);
 			seg.forwardCoord = forwardSegs[0].backwardCoord;
 		}
 
-		// calculate the backwardCoord from the forwardCoord. consider the series
 		seg.backwardCoord = seg.forwardCoord -
-			(seg.forwardCoord - seriesBackwardCoord) / // available width for series
-			(seriesBackwardPressure + 1); // # of segments in the series
+			(seg.forwardCoord - seriesBackwardCoord) 
+			(seriesBackwardPressure + 1); 
 
-		// use this segment's coordinates to computed the coordinates of the less-pressurized
-		// forward segments
 		for (i=0; i<forwardSegs.length; i++) {
 			computeSlotSegCoords(forwardSegs[i], 0, seg.forwardCoord);
 		}
@@ -4482,9 +4180,6 @@ function flattenSlotSegLevels(levels) {
 	return segs;
 }
 
-
-// Find all the segments in `otherSegs` that vertically collide with `seg`.
-// Append into an optionally-supplied `results` array and return.
 function computeSlotSegCollisions(seg, otherSegs, results) {
 	results = results || [];
 
@@ -4497,35 +4192,24 @@ function computeSlotSegCollisions(seg, otherSegs, results) {
 	return results;
 }
 
-
-// Do these segments occupy the same vertical space?
 function isSlotSegCollision(seg1, seg2) {
 	return seg1.end > seg2.start && seg1.start < seg2.end;
 }
 
-
-// A cmp function for determining which forward segment to rely on more when computing coordinates.
 function compareForwardSlotSegs(seg1, seg2) {
 	// put higher-pressure first
 	return seg2.forwardPressure - seg1.forwardPressure ||
 		// put segments that are closer to initial edge first (and favor ones with no coords yet)
 		(seg1.backwardCoord || 0) - (seg2.backwardCoord || 0) ||
-		// do normal sorting...
 		compareSlotSegs(seg1, seg2);
 }
 
-
-// A cmp function for determining which segment should be closer to the initial edge
-// (the left edge on a left-to-right calendar).
 function compareSlotSegs(seg1, seg2) {
-	return seg1.start - seg2.start || // earlier start time goes first
-		(seg2.end - seg2.start) - (seg1.end - seg1.start) || // tie? longer-duration goes first
-		(seg1.event.title || '').localeCompare(seg2.event.title); // tie? alphabetically by title
+	return seg1.start - seg2.start || 
+		(seg2.end - seg2.start) - (seg1.end - seg1.start) || 
+		(seg1.event.title || '').localeCompare(seg2.event.title); 
 }
-
-
 ;;
-
 
 function View(element, calendar, viewName) {
 	var t = this;
@@ -4586,10 +4270,8 @@ function View(element, calendar, viewName) {
 	
 
 
-	/* Event Editable Boolean Calculations
-	------------------------------------------------------------------------------*/
+	/* Event Editable Boolean Calculations*/
 
-	
 	function isEventDraggable(event) {
 		var source = event.source || {};
 		return firstDefined(
@@ -4600,11 +4282,11 @@ function View(element, calendar, viewName) {
 				source.editable,
 				opt('editable')
 			)
-			&& !opt('disableDragging'); // deprecated
+			&& !opt('disableDragging'); 
 	}
 	
 	
-	function isEventResizable(event) { // but also need to make sure the seg.isEnd == true
+	function isEventResizable(event) { 
 		var source = event.source || {};
 		return firstDefined(
 				event.durationEditable,
@@ -4614,16 +4296,14 @@ function View(element, calendar, viewName) {
 				source.editable,
 				opt('editable')
 			)
-			&& !opt('disableResizing'); // deprecated
+			&& !opt('disableResizing'); 
 	}
 	
 	
 	
-	/* Event Data
-	------------------------------------------------------------------------------*/
+	/* Event Data*/
 	
-	
-	function setEventData(events) { // events are already normalized at this point
+	function setEventData(events) { 
 		eventsByID = {};
 		var i, len=events.length, event;
 		for (i=0; i<len; i++) {
@@ -4651,11 +4331,8 @@ function View(element, calendar, viewName) {
 	
 	
 	
-	/* Event Elements
-	------------------------------------------------------------------------------*/
+	/* Event Elements*/
 	
-	
-	// report when view creates an element for an event
 	function reportEventElement(event, element) {
 		eventElementCouples.push({ event: event, element: element });
 		if (eventElementsByID[event._id]) {
@@ -4690,8 +4367,6 @@ function View(element, calendar, viewName) {
 					trigger('eventMouseout', this, event, ev);
 				}
 			);
-		// TODO: don't fire eventMouseover/eventMouseout *while* dragging is occuring (on subject element)
-		// TODO: same for resizing
 	}
 	
 	
@@ -4706,8 +4381,7 @@ function View(element, calendar, viewName) {
 	
 	
 	function eachEventElement(event, exceptElement, funcName) {
-		// NOTE: there may be multiple events per ID (repeating events)
-		// and multiple segments per event
+	
 		var elements = eventElementsByID[event._id],
 			i, len = elements.length;
 		for (i=0; i<len; i++) {
@@ -4719,9 +4393,7 @@ function View(element, calendar, viewName) {
 	
 	
 	
-	/* Event Modification Reporting
-	---------------------------------------------------------------------------------*/
-	
+	/* Event Modification Reporting*/
 	
 	function eventDrop(e, event, dayDelta, minuteDelta, allDay, ev, ui) {
 		var oldAllDay = event.allDay;
@@ -4735,7 +4407,6 @@ function View(element, calendar, viewName) {
 			minuteDelta,
 			allDay,
 			function() {
-				// TODO: investigate cases where this inverse technique might not work
 				moveEvents(eventsByID[eventId], -dayDelta, -minuteDelta, oldAllDay);
 				reportEventChange(eventId);
 			},
@@ -4756,7 +4427,6 @@ function View(element, calendar, viewName) {
 			dayDelta,
 			minuteDelta,
 			function() {
-				// TODO: investigate cases where this inverse technique might not work
 				elongateEvents(eventsByID[eventId], -dayDelta, -minuteDelta);
 				reportEventChange(eventId);
 			},
@@ -4768,10 +4438,8 @@ function View(element, calendar, viewName) {
 	
 	
 	
-	/* Event Modification Math
-	---------------------------------------------------------------------------------*/
-	
-	
+	/* Event Modification Math*/
+
 	function moveEvents(events, dayDelta, minuteDelta, allDay) {
 		minuteDelta = minuteDelta || 0;
 		for (var e, len=events.length, i=0; i<len; i++) {
@@ -5597,7 +5265,7 @@ function DayEventRenderer() {
 
 	/* Mouse Handlers
 	---------------------------------------------------------------------------------------------------*/
-	// TODO: better documentation!
+
 
 
 	function attachHandlers(segments, modifiedEventId) {
@@ -5638,7 +5306,7 @@ function DayEventRenderer() {
 	function draggableDayEvent(event, eventElement) {
 		var hoverListener = getHoverListener();
 		var dayDelta;
-		eventElement.draggable({
+		eventElement.drag({
 			delay: 50,
 			opacity: opt('dragOpacity'),
 			revertDuration: opt('dragRevertDuration'),
@@ -5646,7 +5314,7 @@ function DayEventRenderer() {
 				trigger('eventDragStart', eventElement, event, ev, ui);
 				hideEvents(event, eventElement);
 				hoverListener.start(function(cell, origCell, rowDelta, colDelta) {
-					eventElement.draggable('option', 'revert', !cell || !rowDelta && !colDelta);
+					eventElement.drag('option', 'revert', !cell || !rowDelta && !colDelta);
 					clearOverlays();
 					if (cell) {
 						var origDate = cellToDate(origCell);
